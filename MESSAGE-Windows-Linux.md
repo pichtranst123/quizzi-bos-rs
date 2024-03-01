@@ -1,77 +1,59 @@
-pich@pich-VirtualBox:~/quizzi-rs/quizzi-bos-rs$ cargo build --target wasm32-unknown-unknown --release
-   Compiling quizzi-bos-rs v0.1.0 (/home/pich/quizzi-rs/quizzi-bos-rs)
-error[E0277]: a value of type `near_sdk::collections::Vector<u128>` cannot be built from an iterator over elements of type `u128`
-    --> src/lib.rs:61:111
-     |
-61   |         let rewards_in_yocto: Vector<Balance> = rewards.into_iter().map(|near_amount| near_amount * ONE_NEAR).collect();
-     |                                                                                                               ^^^^^^^ value of type `near_sdk::collections::Vector<u128>` cannot be built from `std::iter::Iterator<Item=u128>`
-     |
-     = help: the trait `FromIterator<u128>` is not implemented for `near_sdk::collections::Vector<u128>`
-note: the method call chain might not have had the expected associated types
-    --> src/lib.rs:61:57
-     |
-61   |         let rewards_in_yocto: Vector<Balance> = rewards.into_iter().map(|near_amount| near_amount * ONE_NEAR).collect();
-     |                                                 ------- ^^^^^^^^^^^ ----------------------------------------- `Iterator::Item` remains `u128` here
-     |                                                 |       |
-     |                                                 |       `Iterator::Item` is `u128` here
-     |                                                 this expression has type `Vec<u128>`
-note: required by a bound in `collect`
-    --> /home/pich/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/iter/traits/iterator.rs:2049:19
-     |
-2049 |     fn collect<B: FromIterator<Self::Item>>(self) -> B
-     |                   ^^^^^^^^^^^^^^^^^^^^^^^^ required by this bound in `Iterator::collect`
+pich@pich-VirtualBox:~/quizzi-rs/quizzi-bos-rs$ near contract call-function as-transaction quizzigame.testnet add_questions json-args '{"game_id":"quiz1","questions":[{"question_text":"What is BOS?","possible_answers":["Blockchain Openrating System","Blockchain Opensource system"
+],"correct_answer":"Blockchain Operating System", "score": 5},{"question_text":"What language is near smartcontract?","possible_answers":["R
+ust or JS","Solidity or JS"],"correct_answer":"Rust or JS", "score": 5}]}' prepaid-gas '100.0 Tgas' attached-deposit '0 NEAR' sign-as quizzi
+game.testnet network-config testnet sign-with-keychain send
 
-error[E0308]: mismatched types
-    --> src/lib.rs:125:35
-     |
-125  |         rankings.into_iter().take(self.quizzes.get(&game_id).expect("Quiz not found").rewards.len()).collect()
-     |                              ---- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ expected `usize`, found `u64`
-     |                              |
-     |                              arguments to this method are incorrect
-     |
-note: method defined here
-    --> /home/pich/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/iter/traits/iterator.rs:1411:8
-     |
-1411 |     fn take(self, n: usize) -> Take<Self>
-     |        ^^^^
-help: you can convert a `u64` to a `usize` and panic if the converted value doesn't fit
-     |
-125  |         rankings.into_iter().take(self.quizzes.get(&game_id).expect("Quiz not found").rewards.len().try_into().unwrap()).collect()
-     |                                                                                                    ++++++++++++++++++++
+Unsigned transaction:
 
-error[E0614]: type `u128` cannot be dereferenced
-   --> src/lib.rs:135:51
-    |
-135 |                 Promise::new(account_id).transfer(*reward_amount);
-    |                                                   ^^^^^^^^^^^^^^
+signer_id:    quizzigame.testnet
+receiver_id:  quizzigame.testnet
+actions:
+   -- function call:      
+                   method name:  add_questions
+                   args:         {
+                                   "game_id": "quiz1",
+                                   "questions": [
+                                     {
+                                       "correct_answer": "Blockchain Operating System",
+                                       "possible_answers": [
+                                         "Blockchain Openrating System",
+                                         "Blockchain Opensource system"
+                                       ],
+                                       "question_text": "What is BOS?",
+                                       "score": 5
+                                     },
+                                     {
+                                       "correct_answer": "Rust or JS",
+                                       "possible_answers": [
+                                         "Rust or JS",
+                                         "Solidity or JS"
+                                       ],
+                                       "question_text": "What language is near smartcontract?",
+                                       "score": 5
+                                     }
+                                   ]
+                                 }
+                   gas:          100.0 Tgas
+                   deposit:      0 NEAR
 
-error[E0277]: the trait bound `Quiz: Serialize` is not satisfied
-    --> src/lib.rs:46:1
-     |
-46   | #[near_bindgen]
-     | ^^^^^^^^^^^^^^^ the trait `Serialize` is not implemented for `Quiz`
-     |
-     = help: the following other types implement trait `Serialize`:
-               bool
-               char
-               isize
-               i8
-               i16
-               i32
-               i64
-               i128
-             and 173 others
-     = note: required for `std::vec::Vec<Quiz>` to implement `Serialize`
-note: required by a bound in `near_sdk::serde_json::to_vec`
-    --> /home/pich/.cargo/registry/src/index.crates.io-6f17d22bba15001f/serde_json-1.0.114/src/ser.rs:2177:17
-     |
-2175 | pub fn to_vec<T>(value: &T) -> Result<Vec<u8>>
-     |        ------ required by a bound in this function
-2176 | where
-2177 |     T: ?Sized + Serialize,
-     |                 ^^^^^^^^^ required by this bound in `to_vec`
-     = note: this error originates in the attribute macro `near_bindgen` (in Nightly builds, run with -Z macro-backtrace for more info)
 
-Some errors have detailed explanations: E0277, E0308, E0614.
-For more information about an error, try `rustc --explain E0277`.
-error: could not compile `quizzi-bos-rs` (lib) due to 4 previous errors
+Your transaction was signed successfully.
+Public key: ed25519:9BdmRQZY2s7J7AmTVvbfdXqBkyZjpHPJG7HNXF9SbPsb
+Signature: ed25519:3B8httVtvBtRiJini1XDgCpvKnwXgPyuCcC62zGCg9yeytidya1cei8GNifF3tf6u9YbiCifGN7bynnAwwr4NdQe
+Transaction sent ...
+--- Logs ---------------------------
+Logs [quizzigame.testnet]:   No logs
+Logs [quizzigame.testnet]:   No logs
+Failed transaction
+
+Here is your console command if you need to script it or re-run:
+near contract call-function as-transaction quizzigame.testnet add_questions json-args '{"game_id":"quiz1","questions":[{"question_text":"What is BOS?","possible_answers":["Blockchain Openrating System","Blockchain Opensource system"],"correct_answer":"Blockchain Operating System", "score": 5},{"question_text":"What language is near smartcontract?","possible_answers":["Rust or JS","Solidity or JS"],"correct_answer":"Rust or JS", "score": 5}]}' prepaid-gas '100.0 Tgas' attached-deposit '0 NEAR' sign-as quizzigame.testnet network-config testnet sign-with-keychain send
+Error: 
+   0: Error: An error occurred during a `FunctionCall` Action, parameter is debug message.
+      ExecutionError("Smart contract panicked: panicked at src/lib.rs:72:1:\nFailed to deserialize input from JSON.: Error(\"invalid type: map, expected a tuple of size 4\", line: 1, column: 32)")
+
+Location:
+   src/transaction_signature_options/mod.rs:144
+
+Backtrace omitted. Run with RUST_BACKTRACE=1 environment variable to display it.
+Run with RUST_BACKTRACE=full to include source snippets.
