@@ -31,7 +31,7 @@ pub struct Quiz {
     end_time: Timestamp,
     creator: AccountId,
     questions: Vector<Question>,
-    rewards: Vector<Balance>, // Rewards in yoctoNEAR
+    rewards: Vector<Balance>,
     ipfs_hash: String,
 }
 
@@ -58,7 +58,12 @@ impl QuizContract {
         let total_reward: Balance = rewards.iter().map(|&near_amount| near_amount * ONE_NEAR).sum();
         assert!(env::attached_deposit() >= total_reward + CONTRACT_FEE, "Insufficient deposit");
         Promise::new(env::current_account_id()).transfer(CONTRACT_FEE);
-        let rewards_in_yocto: Vector<Balance> = rewards.into_iter().map(|near_amount| near_amount * ONE_NEAR).collect();
+
+        let mut rewards_in_yocto: Vector<Balance> = Vector::new(b"r".as_bytes());
+        for near_amount in rewards {
+            rewards_in_yocto.push(&(near_amount * ONE_NEAR));
+        }
+
         let quiz = Quiz {
             game_id: game_id.clone(),
             name,
@@ -88,7 +93,7 @@ impl QuizContract {
             responses,
             submission_time: env::block_timestamp(),
         };
-        let mut submissions = self.responses.get(&game_id).unwrap_or_else(|| Vector::new(b"r"));
+        let mut submissions = self.responses.get(&game_id).unwrap_or_else(|| Vector::new(b"r".to_vec()));
         submissions.push(&submission);
         self.responses.insert(&game_id, &submissions);
     }
@@ -122,18 +127,20 @@ impl QuizContract {
 
     pub fn get_winners(&self, game_id: String) -> Vec<(AccountId, u8)> {
         let rankings = self.calculate_rankings(game_id.clone());
-        rankings.into_iter().take(self.quizzes.get(&game_id).expect("Quiz not found").rewards.len()).collect()
+        rankings.into_iter().take(self.quizzes.get(&game_id).expect("Quiz not found").rewards.len() as usize).collect()
     }
-
     pub fn distribute_rewards(&mut self, game_id: String) {
         let quiz = self.quizzes.get(&game_id).expect("Quiz not found");
         assert!(env::block_timestamp() > quiz.end_time, "Quiz is still ongoing");
-        assert!(env::signer_account_id() == quiz.creator || env::signer_account_id() == env::current_account_id(), "Unauthorized");
+        assert!(env::signer_account_id() == quiz.creator, "Only the quiz creator can distribute rewards");
+    
         let winners = self.get_winners(game_id.clone());
-        for (index, (account_id, _)) in winners.into_iter().enumerate() {
+    
+        for (index, (account_id, _)) in winners.iter().enumerate() {
             if let Some(reward_amount) = quiz.rewards.get(index as u64) {
-                Promise::new(account_id).transfer(*reward_amount);
+                Promise::new(account_id.clone()).transfer(*reward_amount);
             }
         }
     }
+    
 }
